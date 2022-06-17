@@ -1,0 +1,31 @@
+{
+    "name": "fyre/curl",
+    "description": "A cURL library.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "elusivecodes",
+            "email": "elusivecodes@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Fyre\\CURL\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "fyre/header": "^1.0",
+        "fyre/request": "^1.1",
+        "fyre/response": "^1.0",
+        "fyre/uri": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9"
+    }
+}
