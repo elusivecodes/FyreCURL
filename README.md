@@ -1,12 +1,13 @@
 # FyreCURL
 
-**FyreCURL** is a free, cURL library for *PHP*.
+**FyreCURL** is a free, open-source cURL request library for *PHP*.
 
 
 ## Table Of Contents
 - [Installation](#installation)
 - [Methods](#methods)
 - [Curl Requests](#curl-requests)
+- [Curl Responses](#curl-responses)
 
 
 
@@ -57,7 +58,7 @@ Perform a DELETE request.
 $response = Curl::delete($url, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Get**
 
@@ -90,7 +91,7 @@ Perform a GET request.
 $response = Curl::get($url, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Head**
 
@@ -122,7 +123,7 @@ Perform a HEAD request.
 $response = Curl::head($url, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Options**
 
@@ -154,7 +155,7 @@ Perform an OPTIONS request.
 $response = Curl::options($url, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Patch**
 
@@ -188,7 +189,7 @@ Perform a PATCH request.
 $response = Curl::patch($url, $data, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Post**
 
@@ -222,7 +223,7 @@ Perform a POST request.
 $response = Curl::post($url, $data, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 **Put**
 
@@ -256,7 +257,7 @@ Perform a PUT request.
 $response = Curl::put($url, $data, $options);
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
 
 
 ## Curl Requests
@@ -303,4 +304,25 @@ Send the request.
 $response = $request->send();
 ```
 
-This method returns a new [*Response*](https://github.com/elusivecodes/FyreResponse).
+This method returns a new [*CurlResponse*](#curl-responses).
+
+
+## Curl Responses
+
+This class extends the [*Response*](https://github.com/elusivecodes/FyreResponse) class.
+
+```php
+use Fyre\CURL\CurlResponse;
+```
+
+**Get Json**
+
+Get the response body as decoded JSON.
+
+- `$associative` is a boolean indicating whether to return JSON object as associative array, and will default to *true*.
+- `$depth` is a number representing the maximum depth of nesting, and will default to *512*.
+- `$flags` is a number representing additional flags to use for decoding, and will default to *0*.
+
+```php
+$data = $response->getJson($associative, $depth, $flags);
+```

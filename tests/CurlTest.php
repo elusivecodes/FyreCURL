@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Tests;
 
-use
-    Fyre\CURL\Curl,
-    PHPUnit\Framework\TestCase;
+use Fyre\CURL\Curl;
+use PHPUnit\Framework\TestCase;
 
-use function
-    exec,
-    json_encode,
-    sleep,
-    strlen;
+use function exec;
+use function json_encode;
+use function sleep;
+use function strlen;
 
 final class CurlTest extends TestCase
 {
@@ -47,8 +45,10 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"value":"1"}',
-            $response->getBody()
+            [
+                'value' => '1'
+            ],
+            $response->getJson()
         );
     }
 
@@ -89,8 +89,10 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"value":1}',
-            $response->getBody()
+            [
+                'value' => 1
+            ],
+            $response->getJson()
         );
     }
 
@@ -111,8 +113,10 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"value":"1"}',
-            $response->getBody()
+            [
+                'value' => '1'
+            ],
+            $response->getJson()
         );
     }
 
@@ -133,8 +137,10 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"value":1}',
-            $response->getBody()
+            [
+                'value' => 1
+            ],
+            $response->getJson()
         );
     }
 
@@ -146,8 +152,11 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"user":"test","password":"password"}',
-            $response->getBody()
+            [
+                'username' => 'test',
+                'password' => 'password'
+            ],
+            $response->getJson()
         );
     }
 
@@ -204,8 +213,10 @@ final class CurlTest extends TestCase
         ]);
 
         $this->assertSame(
-            '{"value":1}',
-            $response->getBody()
+            [
+                'value' => 1
+            ],
+            $response->getJson()
         );
     }
 

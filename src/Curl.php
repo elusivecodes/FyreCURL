@@ -3,9 +3,8 @@ declare(strict_types=1);
 
 namespace Fyre\CURL;
 
-use
-    Fyre\Http\Response,
-    Fyre\URI\Uri;
+use Fyre\Http\Response;
+use Fyre\Http\Uri;
 
 /**
  * Curl

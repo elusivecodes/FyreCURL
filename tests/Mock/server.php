@@ -23,7 +23,7 @@ switch ($_SERVER['SCRIPT_NAME']) {
     case '/auth':
         header('Content-Type: application/json');
         echo json_encode([
-            'user' => $_SERVER['PHP_AUTH_USER'] ?? '',
+            'username' => $_SERVER['PHP_AUTH_USER'] ?? '',
             'password' => $_SERVER['PHP_AUTH_PW'] ?? ''
         ]);
     case '/agent':

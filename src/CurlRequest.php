@@ -3,71 +3,69 @@ declare(strict_types=1);
 
 namespace Fyre\CURL;
 
-use
-    Fyre\CURL\Exceptions\CurlException,
-    Fyre\Http\Header,
-    Fyre\Http\Request,
-    Fyre\Http\Response,
-    Fyre\URI\Uri;
+use Fyre\CURL\Exceptions\CurlException;
+use Fyre\Http\Header;
+use Fyre\Http\Request;
+use Fyre\Http\Uri;
 
-use const
-    CURL_HTTP_VERSION_1_0,
-    CURL_HTTP_VERSION_1_1,
-    CURL_HTTP_VERSION_2_0,
-    CURLAUTH_BASIC,
-    CURLAUTH_DIGEST,
-    CURLOPT_CONNECTTIMEOUT_MS,
-    CURLOPT_COOKIEFILE,
-    CURLOPT_COOKIEJAR,
-    CURLOPT_CUSTOMREQUEST,
-    CURLOPT_ENCODING,
-    CURLOPT_FAILONERROR,
-    CURLOPT_FOLLOWLOCATION,
-    CURLOPT_FRESH_CONNECT,
-    CURLOPT_HEADER,
-    CURLOPT_HTTP_VERSION,
-    CURLOPT_HTTPAUTH,
-    CURLOPT_HTTPHEADER,
-    CURLOPT_MAXREDIRS,
-    CURLOPT_NOBODY,
-    CURLOPT_POSTFIELDS,
-    CURLOPT_POSTREDIR,
-    CURLOPT_REDIR_PROTOCOLS,
-    CURLOPT_RETURNTRANSFER,
-    CURLOPT_SAFE_UPLOAD,
-    CURLOPT_SSL_VERIFYPEER,
-    CURLOPT_SSLCERT,
-    CURLOPT_SSLCERTPASSWD,
-    CURLOPT_SSLKEY,
-    CURLOPT_STDERR,
-    CURLOPT_TIMEOUT_MS,
-    CURLOPT_URL,
-    CURLOPT_USERAGENT,
-    CURLOPT_USERPWD,
-    CURLOPT_VERBOSE,
-    CURLPROTO_HTTP,
-    CURLPROTO_HTTPS;
+use const CURL_HTTP_VERSION_1_0;
+use const CURL_HTTP_VERSION_1_1;
+use const CURL_HTTP_VERSION_2_0;
+use const CURLAUTH_BASIC;
+use const CURLAUTH_DIGEST;
+use const CURLOPT_CONNECTTIMEOUT_MS;
+use const CURLOPT_COOKIEFILE;
+use const CURLOPT_COOKIEJAR;
+use const CURLOPT_CUSTOMREQUEST;
+use const CURLOPT_ENCODING;
+use const CURLOPT_FAILONERROR;
+use const CURLOPT_FOLLOWLOCATION;
+use const CURLOPT_FRESH_CONNECT;
+use const CURLOPT_HEADER;
+use const CURLOPT_HTTP_VERSION;
+use const CURLOPT_HTTPAUTH;
+use const CURLOPT_HTTPHEADER;
+use const CURLOPT_MAXREDIRS;
+use const CURLOPT_NOBODY;
+use const CURLOPT_POSTFIELDS;
+use const CURLOPT_POSTREDIR;
+use const CURLOPT_REDIR_PROTOCOLS;
+use const CURLOPT_RETURNTRANSFER;
+use const CURLOPT_SAFE_UPLOAD;
+use const CURLOPT_SSL_VERIFYPEER;
+use const CURLOPT_SSLCERT;
+use const CURLOPT_SSLCERTPASSWD;
+use const CURLOPT_SSLKEY;
+use const CURLOPT_STDERR;
+use const CURLOPT_TIMEOUT_MS;
+use const CURLOPT_URL;
+use const CURLOPT_USERAGENT;
+use const CURLOPT_USERPWD;
+use const CURLOPT_VERBOSE;
+use const CURLPROTO_HTTP;
+use const CURLPROTO_HTTPS;
 
-use function
-    array_map,
-    array_replace_recursive,
-    curl_close,
-    curl_error,
-    curl_exec,
-    curl_init,
-    curl_setopt_array,
-    explode,
-    fopen,
-    http_build_query,
-    is_array,
-    is_file,
-    json_encode,
-    preg_match,
-    sleep,
-    strlen,
-    strpos,
-    strtoupper,
-    substr;
+use function array_key_exists;
+use function array_map;
+use function array_replace;
+use function array_replace_recursive;
+use function curl_close;
+use function curl_error;
+use function curl_exec;
+use function curl_init;
+use function curl_setopt_array;
+use function explode;
+use function fopen;
+use function http_build_query;
+use function is_file;
+use function json_encode;
+use function preg_match;
+use function sleep;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function strtoupper;
+use function substr;
 
 /**
  * CurlRequest
@@ -103,7 +101,11 @@ class CurlRequest extends Request
         'debug' => false
     ];
 
-    protected array $config;
+    protected array $options;
+
+    protected string $auth;
+
+    protected int $delay;
 
     /**
      * New CurlRequest constructor.
@@ -112,37 +114,47 @@ class CurlRequest extends Request
      */
     public function __construct(Uri $uri, array $options = [])
     {
-        parent::__construct($uri);
+        $options = array_replace_recursive(static::$defaults, $options);
 
-        $this->config = array_replace_recursive(static::$defaults, $options);
+        [$uri, $options] = static::parseData($uri, $options);
 
-        $this->setMethod($this->config['method']);
-        $this->setProtocolVersion($this->config['protocolVersion']);
+        parent::__construct($uri, $options);
 
-        foreach ($this->config['headers'] AS $header => $value) {
-            $this->setHeader($header, $value);
-        }
+        $authOptions = static::parseAuth($options);
+        $curlOptions = static::parseOptions($options);
+        $redirectOptions = static::parseRedirect($options);
+        $sslOptions = static::parseSsl($options);
+
+        $this->options = array_replace($curlOptions, $authOptions, $redirectOptions, $sslOptions);
+        $this->auth = $options['auth'];
+        $this->delay = $options['delay'];
     }
 
     /**
      * Send the request.
-     * @return Response The Response.
+     * @return CurlResponse The CurlResponse.
      */
-    public function send(): Response
+    public function send(): CurlResponse
     {
-        $response = new Response();
-
-        $options = [];
-
-        $this->setAuthOptions($options);
-        $this->setDataOptions($options);
-        $this->setHeaderOptions($options);
-        $this->setOptions($options);
-        $this->setRedirectOptions($options);
-        $this->setSslOptions($options);
+        $options = $this->options;
 
         $options[CURLOPT_URL] = (string) $this->uri;
+
+        if (array_key_exists('Accept-Encoding', $this->headers)) {
+            $options[CURLOPT_ENCODING] = $this->headers['Accept-Encoding']->getValueString();
+        }
+
+        $options[CURLOPT_HTTPHEADER] = array_map(
+            fn(Header $header): string => (string) $header,
+            $this->headers
+        );
+
         $options[CURLOPT_CUSTOMREQUEST] = strtoupper($this->method);
+        $options[CURLOPT_POSTFIELDS] = $this->body;
+
+        if ($this->method === 'head') {
+            $options[CURLOPT_NOBODY] = 1;
+        }
 
         switch ($this->protocolVersion) {
             case '1.0':
@@ -156,8 +168,8 @@ class CurlRequest extends Request
                 break;
         }
 
-        if ($this->config['delay'] > 0) {
-            sleep($this->config['delay']);
+        if ($this->delay > 0) {
+            sleep($this->delay);
         }
 
         $content = $this->execute($options);
@@ -168,11 +180,17 @@ class CurlRequest extends Request
             $content = substr($content, strpos($content, $breakString) + 4);
         }
 
-        if ($this->config['auth'] === 'digest' && strpos($content, 'WWW-Authenticate: Digest') !== false) {
+        if (strpos($content, 'HTTP/1.1 200 Connection established') === 0) {
+            $content = substr($content, strpos($content, $breakString) + 4);
+        }
+
+        if ($this->auth === 'digest' && strpos($content, 'WWW-Authenticate: Digest') !== false) {
             $content = substr($content, strpos($content, $breakString) + 4);
         }
 
         $break = strpos($content, $breakString);
+
+        $response = new CurlResponse();
 
         if ($break !== false) {
             $headers = explode("\n", substr($content, 0, $break));
@@ -181,19 +199,19 @@ class CurlRequest extends Request
                 if (strpos($header, 'HTTP') === 0) {
                     preg_match('/^HTTP\/([12](?:\.[01])?) (\d+) (.+)/', $header, $matches);
 
-                    $response->setProtocolVersion($matches[1]);
-                    $response->setStatusCode((int) $matches[2], $matches[3] ?? null);
+                    $response = $response->setProtocolVersion($matches[1]);
+                    $response = $response->setStatusCode((int) $matches[2], $matches[3] ?? null);
                 } else {
                     [$name, $value] = explode(':', $header, 2);
 
-                    $response->setHeader($name, $value);
+                    $response = $response->setHeader($name, $value);
                 }
             }
 
             $content = substr($content, $break + 4);
         }
 
-        $response->setBody($content);
+        $response = $response->setBody($content);
 
         return $response;
     }
@@ -223,176 +241,174 @@ class CurlRequest extends Request
     }
 
     /**
-     * Set the auth options.
-     * @param array $options The options.
+     * Parse the auth options.
+     * @param array $options The request options.
+     * @return array The cURL auth options.
      */
-    protected function setAuthOptions(array &$options): void
+    protected static function parseAuth(array $options): array
     {
-        if (!$this->config['username'] || !$this->config['password']) {
-            return;
+        $result = [];
+
+        if (!$options['username'] || !$options['password']) {
+            return $result;
         }
 
-        $options[CURLOPT_USERPWD] = $this->config['username'].':'.$this->config['password'];
+        $result[CURLOPT_USERPWD] = $options['username'].':'.$options['password'];
 
-        switch ($this->config['auth']) {
+        switch ($options['auth']) {
             case 'digest':
-                $options[CURLOPT_HTTPAUTH] = CURLAUTH_DIGEST;
+                $result[CURLOPT_HTTPAUTH] = CURLAUTH_DIGEST;
                 break;
             default:
-                $options[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
+                $result[CURLOPT_HTTPAUTH] = CURLAUTH_BASIC;
                 break;
         }
+
+        return $result;
     }
 
     /**
      * Set the data options.
-     * @param array $options The options.
+     * @param Uri $uri The Uri.
+     * @param array $options The request options.
+     * @return array The Uri and the request options.
      */
-    protected function setDataOptions(array &$options): void
+    protected static function parseData(Uri $uri, array $options): array
     {
-        if (!$this->config['data']) {
-            return;
+        if (!$options['data']) {
+            return [$uri, $options];
         }
 
-        if ($this->method === 'get') {
-            $query = $this->uri->getQuery();
-            $data = array_replace_recursive($query, $this->config['data']);
-            $this->uri->setQuery($data);
-            return;
+        if (strtolower($options['method']) === 'get') {
+            $query = $uri->getQuery();
+            $data = array_replace_recursive($query, $options['data']);
+            $uri = $uri->setQuery($data);
+
+            return [$uri, $options];
         }
 
-        if (!$this->config['processData']) {
-            $options[CURLOPT_POSTFIELDS] = $this->config['data'];
-            return;
+        if (!$options['processData']) {
+            $options['body'] = $options['data'];
+
+            return [$uri, $options];
         }
 
-        switch ($this->config['dataType']) {
+        switch ($options['dataType']) {
             case 'json':
-                $data = json_encode($this->config['data']);
-                $length = strlen($data);
+                $contentType = 'application/json';
+                $data = json_encode($options['data']);
 
-                $this->setHeader('Content-Type', 'application/json');
-                $this->setHeader('Content-Length', (string) $length);
-                $options[CURLOPT_POSTFIELDS] = $data;
+                $options['body'] = $data;
                 break;
             default:
-                $data = http_build_query($this->config['data']);
-                $length = strlen($data);
+                $contentType = 'application/x-www-form-urlencoded';
+                $data = http_build_query($options['data']);
 
-                $this->setHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $this->setHeader('Content-Length', (string) $length);
-
-                $options[CURLOPT_POSTFIELDS] = $data;
+                $options['body'] = $data;
                 break;
         }
+
+        $options['headers'] ??= [];
+        $options['headers']['Content-Type'] = $contentType;
+        $options['headers']['Content-Length'] = (string) strlen($data);
+
+        return [$uri, $options];
     }
 
     /**
-     * Set the header options.
-     * @param array $options The options.
+     * Parse the options.
+     * @param array $options The request options.
+     * @return array The cURL options.
      */
-    protected function setHeaderOptions(array &$options): void
+    protected static function parseOptions(array $options): array
     {
-        if ($this->config['userAgent']) {
-            $options[CURLOPT_USERAGENT] = $this->config['userAgent'];
+        $result = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HEADER => true,
+            CURLOPT_FRESH_CONNECT => true,
+            CURLOPT_SAFE_UPLOAD => true,
+            CURLOPT_TIMEOUT_MS => $options['timeout'] * 1000,
+            CURLOPT_CONNECTTIMEOUT_MS => $options['connectTimeout'] * 1000,
+            CURLOPT_FAILONERROR => $options['httpErrors'] ?? true
+        ];
+
+        if ($options['userAgent']) {
+            $result[CURLOPT_USERAGENT] = $options['userAgent'];
         }
 
-        if ($this->headers === []) {
-            return;
+        if ($options['cookie']) {
+            $result[CURLOPT_COOKIEJAR] = $options['cookie'];
+            $result[CURLOPT_COOKIEFILE] = $options['cookie'];
         }
 
-        $accept = $this->getHeaderValue('Accept-Encoding');
-
-        if ($accept) {
-            $options[CURLOPT_ENCODING] = $accept;
+        if ($options['debug']) {
+            $result[CURLOPT_VERBOSE] = true;
+            $result[CURLOPT_STDERR] = fopen('php://stderr', 'wb');
         }
 
-        $options[CURLOPT_HTTPHEADER] = array_map(
-            fn(Header $header): string => (string) $header,
-            $this->headers
-        );
+        return $result;
     }
 
     /**
-     * Set the options.
-     * @param array $options The options.
+     * Parse the redirect options.
+     * @param array $options The request options.
+     * @return array The cURL redirect options.
      */
-    protected function setOptions(array &$options): void
+    protected static function parseRedirect(array $options): array
     {
-        $options[CURLOPT_RETURNTRANSFER] = true;
-        $options[CURLOPT_HEADER] = true;
-        $options[CURLOPT_FRESH_CONNECT] = true;
-        $options[CURLOPT_SAFE_UPLOAD] = true;
+        $result = [];
 
-        $options[CURLOPT_TIMEOUT_MS] = $this->config['timeout'] * 1000;
-        $options[CURLOPT_CONNECTTIMEOUT_MS] = $this->config['connectTimeout'] * 1000;
+        if (!$options['redirect']) {
+            $result[CURLOPT_FOLLOWLOCATION] = false;
 
-        $options[CURLOPT_FAILONERROR] = $this->config['httpErrors'] ?? true;
-
-        if ($this->method === 'head') {
-            $options[CURLOPT_NOBODY] = 1;
+            return $result;
         }
 
-        if ($this->config['cookie']) {
-            $options[CURLOPT_COOKIEJAR] = $this->config['cookie'];
-            $options[CURLOPT_COOKIEFILE] = $this->config['cookie'];
+        $result[CURLOPT_FOLLOWLOCATION] = true;
+        $result[CURLOPT_MAXREDIRS] = $options['redirectOptions']['max'];
+
+        if ($options['redirectOptions']['strict']) {
+            $result[CURLOPT_POSTREDIR] = 1 | 2 | 4;
         }
 
-        if ($this->config['debug']) {
-            $options[CURLOPT_VERBOSE] = true;
-            $options[CURLOPT_STDERR] = fopen('php://stderr', 'wb');
-        }
+        $result[CURLOPT_REDIR_PROTOCOLS] = $options['redirectOptions']['protocols'];
+
+        return $result;
     }
 
     /**
-     * Set the redirect options.
-     * @param array $options The options.
+     * Parse the SSL options.
+     * @param array $options The request options.
+     * @return array The cURL SSL options.
+     * @throws CurlException if the SSL files are not valid.
      */
-    protected function setRedirectOptions(array &$options): void
+    protected static function parseSsl(array $options): array
     {
-        if (!$this->config['redirect']) {
-            $options[CURLOPT_FOLLOWLOCATION] = false;
-            return;
-        }
+        $result = [];
 
-        $options[CURLOPT_FOLLOWLOCATION] = true;
-        $options[CURLOPT_MAXREDIRS] = $this->config['redirectOptions']['max'];
-
-        if ($this->config['redirectOptions']['strict']) {
-            $options[CURLOPT_POSTREDIR] = 1 | 2 | 4;
-        }
-
-        $options[CURLOPT_REDIR_PROTOCOLS] = $this->config['redirectOptions']['protocols'];
-    }
-
-    /**
-     * Set the SSL options.
-     * @param array $options The options.
-     * @throws CurlException if the SSL files are invalid.
-     */
-    protected function setSslOptions(array &$options): void
-    {
-        if ($this->config['sslCert']) {
-            if (!is_file($this->config['sslCert'])) {
-                throw CurlException::forInvalidSslFile($this->config['sslCert']);
+        if ($options['sslCert']) {
+            if (!is_file($options['sslCert'])) {
+                throw CurlException::forInvalidSslFile($options['sslCert']);
             }
 
-            $options[CURLOPT_SSLCERT] = $this->config['sslCert'];
+            $result[CURLOPT_SSLCERT] = $options['sslCert'];
         }
 
-        if ($this->config['sslPassword']) {
-            $options[CURLOPT_SSLCERTPASSWD] = $this->config['sslPassword'];
+        if ($options['sslPassword']) {
+            $result[CURLOPT_SSLCERTPASSWD] = $options['sslPassword'];
         }
 
-        if ($this->config['sslKey']) {
-            if (!is_file($this->config['sslKey'])) {
-                throw CurlException::forInvalidSslFile($this->config['sslKey']);
+        if ($options['sslKey']) {
+            if (!is_file($options['sslKey'])) {
+                throw CurlException::forInvalidSslFile($options['sslKey']);
             }
 
-            $options[CURLOPT_SSLKEY] = $this->config['sslKey'];
+            $result[CURLOPT_SSLKEY] = $options['sslKey'];
         }
 
-        $options[CURLOPT_SSL_VERIFYPEER] = $this->config['verify'];
+        $result[CURLOPT_SSL_VERIFYPEER] = $options['verify'];
+
+        return $result;
     }
 
 }
