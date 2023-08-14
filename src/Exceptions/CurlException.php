@@ -11,7 +11,7 @@ use RuntimeException;
 class CurlException extends RuntimeException
 {
 
-    public static function forInvalidSslFile(string $filePath)
+    public static function forInvalidSslFile(string $filePath): static
     {
         return new static('Invalid SSL file: '.$filePath);
     }
