@@ -199,8 +199,9 @@ class CurlRequest extends Request
                 if (strpos($header, 'HTTP') === 0) {
                     preg_match('/^HTTP\/([12](?:\.[01])?) (\d+) (.+)/', $header, $matches);
 
-                    $response = $response->setProtocolVersion($matches[1]);
-                    $response = $response->setStatusCode((int) $matches[2], $matches[3] ?? null);
+                    $response = $response
+                        ->setStatusCode((int) $matches[2], $matches[3] ?? null)
+                        ->setProtocolVersion($matches[1]);
                 } else {
                     [$name, $value] = explode(':', $header, 2);
 
