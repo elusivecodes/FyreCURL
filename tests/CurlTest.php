@@ -13,8 +13,46 @@ use function strlen;
 
 final class CurlTest extends TestCase
 {
-
     protected static int $pid;
+
+    public static function setUpBeforeClass(): void
+    {
+        static::$pid = (int) exec('nohup php -S localhost:8888 tests/Mock/server.php >/dev/null 2>&1 & echo $!');
+        sleep(1);
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        exec('kill '.static::$pid);
+    }
+
+    public function testAgent(): void
+    {
+        $response = Curl::get('localhost:8888/agent', [
+            'userAgent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+        ]);
+
+        $this->assertSame(
+            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
+            $response->getBody()
+        );
+    }
+
+    public function testAuth(): void
+    {
+        $response = Curl::get('localhost:8888/auth', [
+            'username' => 'test',
+            'password' => 'password'
+        ]);
+
+        $this->assertSame(
+            [
+                'username' => 'test',
+                'password' => 'password'
+            ],
+            $response->getJson()
+        );
+    }
 
     public function testDeleteMethod(): void
     {
@@ -22,16 +60,6 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'DELETE',
-            $response->getBody()
-        );
-    }
-
-    public function testGetMethod(): void
-    {
-        $response = Curl::get('localhost:8888/method');
-
-        $this->assertSame(
-            'GET',
             $response->getBody()
         );
     }
@@ -49,6 +77,30 @@ final class CurlTest extends TestCase
                 'value' => '1'
             ],
             $response->getJson()
+        );
+    }
+
+    public function testGetMethod(): void
+    {
+        $response = Curl::get('localhost:8888/method');
+
+        $this->assertSame(
+            'GET',
+            $response->getBody()
+        );
+    }
+
+    public function testHeader(): void
+    {
+        $response = Curl::get('localhost:8888/header', [
+            'headers' => [
+                'Accept' => 'text/html'
+            ]
+        ]);
+
+        $this->assertSame(
+            'text/html',
+            $response->getBody()
         );
     }
 
@@ -72,16 +124,6 @@ final class CurlTest extends TestCase
         );
     }
 
-    public function testPatchMethod(): void
-    {
-        $response = Curl::patch('localhost:8888/method');
-
-        $this->assertSame(
-            'PATCH',
-            $response->getBody()
-        );
-    }
-
     public function testPatchData(): void
     {
         $response = Curl::patch('localhost:8888/json', [
@@ -96,12 +138,12 @@ final class CurlTest extends TestCase
         );
     }
 
-    public function testPostMethod(): void
+    public function testPatchMethod(): void
     {
-        $response = Curl::post('localhost:8888/method');
+        $response = Curl::patch('localhost:8888/method');
 
         $this->assertSame(
-            'POST',
+            'PATCH',
             $response->getBody()
         );
     }
@@ -120,80 +162,12 @@ final class CurlTest extends TestCase
         );
     }
 
-    public function testPutMethod(): void
+    public function testPostMethod(): void
     {
-        $response = Curl::put('localhost:8888/method');
+        $response = Curl::post('localhost:8888/method');
 
         $this->assertSame(
-            'PUT',
-            $response->getBody()
-        );
-    }
-
-    public function testPutData(): void
-    {
-        $response = Curl::put('localhost:8888/json', [
-            'value' => 1
-        ]);
-
-        $this->assertSame(
-            [
-                'value' => 1
-            ],
-            $response->getJson()
-        );
-    }
-
-    public function testAuth(): void
-    {
-        $response = Curl::get('localhost:8888/auth', [
-            'username' => 'test',
-            'password' => 'password'
-        ]);
-
-        $this->assertSame(
-            [
-                'username' => 'test',
-                'password' => 'password'
-            ],
-            $response->getJson()
-        );
-    }
-
-    public function testAgent(): void
-    {
-        $response = Curl::get('localhost:8888/agent', [
-            'userAgent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
-        ]);
-
-        $this->assertSame(
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
-            $response->getBody()
-        );
-    }
-
-    public function testHeader(): void
-    {
-        $response = Curl::get('localhost:8888/header', [
-            'headers' => [
-                'Accept' => 'text/html'
-            ]
-        ]);
-
-        $this->assertSame(
-            'text/html',
-            $response->getBody()
-        );
-    }
-
-    public function testProtocolVersion(): void
-    {
-        $response = Curl::get('localhost:8888/version', [
-            'protocolVersion' => '1.0'
-        ]);
-
-        $this->assertSame(
-            'HTTP/1.0',
+            'POST',
             $response->getBody()
         );
     }
@@ -220,15 +194,39 @@ final class CurlTest extends TestCase
         );
     }
 
-    public static function setUpBeforeClass(): void
+    public function testProtocolVersion(): void
     {
-        static::$pid = (int) exec('nohup php -S localhost:8888 tests/Mock/server.php >/dev/null 2>&1 & echo $!');
-        sleep(1);
+        $response = Curl::get('localhost:8888/version', [
+            'protocolVersion' => '1.0'
+        ]);
+
+        $this->assertSame(
+            'HTTP/1.0',
+            $response->getBody()
+        );
     }
 
-    public static function tearDownAfterClass(): void
+    public function testPutData(): void
     {
-        exec('kill '.static::$pid);
+        $response = Curl::put('localhost:8888/json', [
+            'value' => 1
+        ]);
+
+        $this->assertSame(
+            [
+                'value' => 1
+            ],
+            $response->getJson()
+        );
     }
 
+    public function testPutMethod(): void
+    {
+        $response = Curl::put('localhost:8888/method');
+
+        $this->assertSame(
+            'PUT',
+            $response->getBody()
+        );
+    }
 }

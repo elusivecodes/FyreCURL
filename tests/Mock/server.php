@@ -26,6 +26,7 @@ switch ($_SERVER['SCRIPT_NAME']) {
             'username' => $_SERVER['PHP_AUTH_USER'] ?? '',
             'password' => $_SERVER['PHP_AUTH_PW'] ?? ''
         ]);
+        // no break
     case '/agent':
         echo $_SERVER['HTTP_USER_AGENT'] ?? '';
         break;

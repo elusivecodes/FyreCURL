@@ -9,7 +9,6 @@ use function json_decode;
 
 class CurlResponse extends Response
 {
-
     /**
      * Get the response body as decoded JSON.
      * @param bool $associative Whether to return JSON object as associative array.
@@ -21,5 +20,4 @@ class CurlResponse extends Response
     {
         return json_decode($this->body, $associative, $depth, $flags);
     }
-
 }

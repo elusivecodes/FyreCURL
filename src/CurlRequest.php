@@ -8,6 +8,28 @@ use Fyre\Http\Header;
 use Fyre\Http\Request;
 use Fyre\Http\Uri;
 
+use function array_key_exists;
+use function array_map;
+use function array_replace;
+use function array_replace_recursive;
+use function curl_close;
+use function curl_error;
+use function curl_exec;
+use function curl_init;
+use function curl_setopt_array;
+use function explode;
+use function fopen;
+use function http_build_query;
+use function is_file;
+use function json_encode;
+use function preg_match;
+use function sleep;
+use function strlen;
+use function strpos;
+use function strtolower;
+use function strtoupper;
+use function substr;
+
 use const CURL_HTTP_VERSION_1_0;
 use const CURL_HTTP_VERSION_1_1;
 use const CURL_HTTP_VERSION_2_0;
@@ -45,33 +67,12 @@ use const CURLOPT_VERBOSE;
 use const CURLPROTO_HTTP;
 use const CURLPROTO_HTTPS;
 
-use function array_key_exists;
-use function array_map;
-use function array_replace;
-use function array_replace_recursive;
-use function curl_close;
-use function curl_error;
-use function curl_exec;
-use function curl_init;
-use function curl_setopt_array;
-use function explode;
-use function fopen;
-use function http_build_query;
-use function is_file;
-use function json_encode;
-use function preg_match;
-use function sleep;
-use function strlen;
-use function strpos;
-use function strtolower;
-use function strtoupper;
-use function substr;
-
 /**
  * CurlRequest
  */
 class CurlRequest extends Request
 {
+    protected string $auth;
 
     protected static array $defaults = [
         'method' => 'get',
@@ -101,11 +102,9 @@ class CurlRequest extends Request
         'debug' => false
     ];
 
-    protected array $options;
-
-    protected string $auth;
-
     protected int $delay;
+
+    protected array $options;
 
     /**
      * New CurlRequest constructor.
@@ -411,5 +410,4 @@ class CurlRequest extends Request
 
         return $result;
     }
-
 }

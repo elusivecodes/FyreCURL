@@ -11,7 +11,6 @@ use Fyre\Http\Uri;
  */
 abstract class Curl
 {
-
     /**
      * Perform a DELETE request.
      * @param string $url The url.
@@ -124,5 +123,4 @@ abstract class Curl
 
         return $curl->send($url);
     }
-
 }
