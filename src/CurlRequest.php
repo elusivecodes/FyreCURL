@@ -72,8 +72,6 @@ use const CURLPROTO_HTTPS;
  */
 class CurlRequest extends Request
 {
-    protected string $auth;
-
     protected static array $defaults = [
         'method' => 'get',
         'headers' => [],
@@ -93,14 +91,16 @@ class CurlRequest extends Request
         'redirectOptions' => [
             'max' => 5,
             'strict' => true,
-            'protocols' => CURLPROTO_HTTP | CURLPROTO_HTTPS
+            'protocols' => CURLPROTO_HTTP | CURLPROTO_HTTPS,
         ],
         'verify' => true,
         'delay' => 0,
         'timeout' => 0,
         'connectTimeout' => 150,
-        'debug' => false
+        'debug' => false,
     ];
+
+    protected string $auth;
 
     protected int $delay;
 
@@ -108,6 +108,7 @@ class CurlRequest extends Request
 
     /**
      * New CurlRequest constructor.
+     *
      * @param Uri $uri The Uri.
      * @param array $options The request options.
      */
@@ -131,6 +132,7 @@ class CurlRequest extends Request
 
     /**
      * Send the request.
+     *
      * @return CurlResponse The CurlResponse.
      */
     public function send(): CurlResponse
@@ -218,8 +220,10 @@ class CurlRequest extends Request
 
     /**
      * Execute the request.
+     *
      * @param array $options The curl options.
      * @return string The response.
+     *
      * @throws CurlException If the request encounters an error.
      */
     protected function execute(array $options): string
@@ -242,6 +246,7 @@ class CurlRequest extends Request
 
     /**
      * Parse the auth options.
+     *
      * @param array $options The request options.
      * @return array The cURL auth options.
      */
@@ -269,6 +274,7 @@ class CurlRequest extends Request
 
     /**
      * Set the data options.
+     *
      * @param Uri $uri The Uri.
      * @param array $options The request options.
      * @return array The Uri and the request options.
@@ -317,6 +323,7 @@ class CurlRequest extends Request
 
     /**
      * Parse the options.
+     *
      * @param array $options The request options.
      * @return array The cURL options.
      */
@@ -329,7 +336,7 @@ class CurlRequest extends Request
             CURLOPT_SAFE_UPLOAD => true,
             CURLOPT_TIMEOUT_MS => $options['timeout'] * 1000,
             CURLOPT_CONNECTTIMEOUT_MS => $options['connectTimeout'] * 1000,
-            CURLOPT_FAILONERROR => $options['httpErrors'] ?? true
+            CURLOPT_FAILONERROR => $options['httpErrors'] ?? true,
         ];
 
         if ($options['userAgent']) {
@@ -351,6 +358,7 @@ class CurlRequest extends Request
 
     /**
      * Parse the redirect options.
+     *
      * @param array $options The request options.
      * @return array The cURL redirect options.
      */
@@ -378,8 +386,10 @@ class CurlRequest extends Request
 
     /**
      * Parse the SSL options.
+     *
      * @param array $options The request options.
      * @return array The cURL SSL options.
+     *
      * @throws CurlException if the SSL files are not valid.
      */
     protected static function parseSsl(array $options): array

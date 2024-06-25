@@ -11,6 +11,7 @@ class CurlResponse extends Response
 {
     /**
      * Get the response body as decoded JSON.
+     *
      * @param bool $associative Whether to return JSON object as associative array.
      * @param int $depth The maximum depth of nesting.
      * @param int $flags The JSON decoding flags.

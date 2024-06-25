@@ -15,21 +15,10 @@ final class CurlTest extends TestCase
 {
     protected static int $pid;
 
-    public static function setUpBeforeClass(): void
-    {
-        static::$pid = (int) exec('nohup php -S localhost:8888 tests/Mock/server.php >/dev/null 2>&1 & echo $!');
-        sleep(1);
-    }
-
-    public static function tearDownAfterClass(): void
-    {
-        exec('kill '.static::$pid);
-    }
-
     public function testAgent(): void
     {
         $response = Curl::get('localhost:8888/agent', [
-            'userAgent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36'
+            'userAgent' => 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
         ]);
 
         $this->assertSame(
@@ -42,13 +31,13 @@ final class CurlTest extends TestCase
     {
         $response = Curl::get('localhost:8888/auth', [
             'username' => 'test',
-            'password' => 'password'
+            'password' => 'password',
         ]);
 
         $this->assertSame(
             [
                 'username' => 'test',
-                'password' => 'password'
+                'password' => 'password',
             ],
             $response->getJson()
         );
@@ -68,13 +57,13 @@ final class CurlTest extends TestCase
     {
         $response = Curl::get('localhost:8888/get', [
             'data' => [
-                'value' => 1
-            ]
+                'value' => 1,
+            ],
         ]);
 
         $this->assertSame(
             [
-                'value' => '1'
+                'value' => '1',
             ],
             $response->getJson()
         );
@@ -94,8 +83,8 @@ final class CurlTest extends TestCase
     {
         $response = Curl::get('localhost:8888/header', [
             'headers' => [
-                'Accept' => 'text/html'
-            ]
+                'Accept' => 'text/html',
+            ],
         ]);
 
         $this->assertSame(
@@ -127,12 +116,12 @@ final class CurlTest extends TestCase
     public function testPatchData(): void
     {
         $response = Curl::patch('localhost:8888/json', [
-            'value' => 1
+            'value' => 1,
         ]);
 
         $this->assertSame(
             [
-                'value' => 1
+                'value' => 1,
             ],
             $response->getJson()
         );
@@ -151,12 +140,12 @@ final class CurlTest extends TestCase
     public function testPostData(): void
     {
         $response = Curl::post('localhost:8888/post', [
-            'value' => 1
+            'value' => 1,
         ]);
 
         $this->assertSame(
             [
-                'value' => '1'
+                'value' => '1',
             ],
             $response->getJson()
         );
@@ -181,14 +170,14 @@ final class CurlTest extends TestCase
             'data' => $data,
             'headers' => [
                 'Content-Type' => 'application/json',
-                'Content-Length' => (string) $length
+                'Content-Length' => (string) $length,
             ],
-            'processData' => false
+            'processData' => false,
         ]);
 
         $this->assertSame(
             [
-                'value' => 1
+                'value' => 1,
             ],
             $response->getJson()
         );
@@ -197,7 +186,7 @@ final class CurlTest extends TestCase
     public function testProtocolVersion(): void
     {
         $response = Curl::get('localhost:8888/version', [
-            'protocolVersion' => '1.0'
+            'protocolVersion' => '1.0',
         ]);
 
         $this->assertSame(
@@ -209,12 +198,12 @@ final class CurlTest extends TestCase
     public function testPutData(): void
     {
         $response = Curl::put('localhost:8888/json', [
-            'value' => 1
+            'value' => 1,
         ]);
 
         $this->assertSame(
             [
-                'value' => 1
+                'value' => 1,
             ],
             $response->getJson()
         );
@@ -228,5 +217,16 @@ final class CurlTest extends TestCase
             'PUT',
             $response->getBody()
         );
+    }
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$pid = (int) exec('nohup php -S localhost:8888 tests/Mock/server.php >/dev/null 2>&1 & echo $!');
+        sleep(1);
+    }
+
+    public static function tearDownAfterClass(): void
+    {
+        exec('kill '.self::$pid);
     }
 }

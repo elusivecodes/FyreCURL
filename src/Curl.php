@@ -13,6 +13,7 @@ abstract class Curl
 {
     /**
      * Perform a DELETE request.
+     *
      * @param string $url The url.
      * @param array $options The request options.
      * @return Response The Response.
@@ -26,6 +27,7 @@ abstract class Curl
 
     /**
      * Perform a GET request.
+     *
      * @param string $url The url.
      * @param array $options The request options.
      * @return Response The Response.
@@ -39,6 +41,7 @@ abstract class Curl
 
     /**
      * Perform a HEAD request.
+     *
      * @param string $url The url.
      * @param array $options The request options.
      * @return Response The Response.
@@ -52,6 +55,7 @@ abstract class Curl
 
     /**
      * Perform an OPTIONS request.
+     *
      * @param string $url The url.
      * @param array $options The request options.
      * @return Response The Response.
@@ -65,6 +69,7 @@ abstract class Curl
 
     /**
      * Perform a PATCH request.
+     *
      * @param string $url The url.
      * @param array $data The request data.
      * @param array $options The request options.
@@ -81,6 +86,7 @@ abstract class Curl
 
     /**
      * Perform a POST request.
+     *
      * @param string $url The url.
      * @param array $data The request data.
      * @param array $options The request options.
@@ -96,6 +102,7 @@ abstract class Curl
 
     /**
      * Perform a PUT request.
+     *
      * @param string $url The url.
      * @param array $data The request data.
      * @param array $options The request options.
@@ -112,6 +119,7 @@ abstract class Curl
 
     /**
      * Perform a request.
+     *
      * @param string $url The url.
      * @param array $options The request options.
      * @return Response The Response.

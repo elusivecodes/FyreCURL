@@ -24,7 +24,7 @@ switch ($_SERVER['SCRIPT_NAME']) {
         header('Content-Type: application/json');
         echo json_encode([
             'username' => $_SERVER['PHP_AUTH_USER'] ?? '',
-            'password' => $_SERVER['PHP_AUTH_PW'] ?? ''
+            'password' => $_SERVER['PHP_AUTH_PW'] ?? '',
         ]);
         // no break
     case '/agent':
