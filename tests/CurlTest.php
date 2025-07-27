@@ -4,8 +4,11 @@ declare(strict_types=1);
 namespace Tests;
 
 use Fyre\CURL\Curl;
+use Fyre\CURL\CurlResponse;
+use Fyre\Utility\Traits\MacroTrait;
 use PHPUnit\Framework\TestCase;
 
+use function class_uses;
 use function exec;
 use function json_encode;
 use function sleep;
@@ -100,6 +103,14 @@ final class CurlTest extends TestCase
         $this->assertSame(
             '',
             $response->getBody()
+        );
+    }
+
+    public function testMacroable(): void
+    {
+        $this->assertContains(
+            MacroTrait::class,
+            class_uses(CurlResponse::class)
         );
     }
 

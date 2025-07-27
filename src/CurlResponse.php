@@ -4,11 +4,14 @@ declare(strict_types=1);
 namespace Fyre\CURL;
 
 use Fyre\Http\Response;
+use Fyre\Utility\Traits\MacroTrait;
 
 use function json_decode;
 
 class CurlResponse extends Response
 {
+    use MacroTrait;
+
     /**
      * Get the response body as decoded JSON.
      *
