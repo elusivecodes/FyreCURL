@@ -20,11 +20,10 @@
         }
     },
     "require": {
-        "fyre/header": "^2.0",
-        "fyre/macro": "^1.0",
-        "fyre/request": "^3.0",
-        "fyre/response": "^3.0",
-        "fyre/uri": "^3.0"
+        "fyre/macro": "^2.0",
+        "fyre/request": "^4.0",
+        "fyre/response": "^4.0",
+        "fyre/uri": "^4.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.59",

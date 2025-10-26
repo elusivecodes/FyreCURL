@@ -129,6 +129,6 @@ abstract class Curl
         $uri = new Uri($url);
         $curl = new CurlRequest($uri, $options);
 
-        return $curl->send($url);
+        return $curl->send();
     }
 }

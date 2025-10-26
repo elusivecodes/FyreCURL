@@ -4,11 +4,12 @@ declare(strict_types=1);
 namespace Fyre\CURL;
 
 use Fyre\CURL\Exceptions\CurlException;
-use Fyre\Http\Header;
 use Fyre\Http\Request;
+use Fyre\Http\Stream;
 use Fyre\Http\Uri;
 
 use function array_key_exists;
+use function array_keys;
 use function array_map;
 use function array_replace;
 use function array_replace_recursive;
@@ -29,6 +30,7 @@ use function strpos;
 use function strtolower;
 use function strtoupper;
 use function substr;
+use function trim;
 
 use const CURL_HTTP_VERSION_1_0;
 use const CURL_HTTP_VERSION_1_1;
@@ -53,7 +55,6 @@ use const CURLOPT_POSTFIELDS;
 use const CURLOPT_POSTREDIR;
 use const CURLOPT_REDIR_PROTOCOLS;
 use const CURLOPT_RETURNTRANSFER;
-use const CURLOPT_SAFE_UPLOAD;
 use const CURLOPT_SSL_VERIFYPEER;
 use const CURLOPT_SSLCERT;
 use const CURLOPT_SSLCERTPASSWD;
@@ -142,12 +143,12 @@ class CurlRequest extends Request
         $options[CURLOPT_URL] = (string) $this->uri;
 
         if (array_key_exists('Accept-Encoding', $this->headers)) {
-            $options[CURLOPT_ENCODING] = $this->headers['Accept-Encoding']->getValueString();
+            $options[CURLOPT_ENCODING] = $this->getHeaderLine('Accept-Encoding');
         }
 
         $options[CURLOPT_HTTPHEADER] = array_map(
-            fn(Header $header): string => (string) $header,
-            $this->headers
+            fn(string $name): string => $name.': '.$this->getHeaderLine($name),
+            array_keys($this->headers)
         );
 
         $options[CURLOPT_CUSTOMREQUEST] = strtoupper($this->method);
@@ -201,19 +202,22 @@ class CurlRequest extends Request
                     preg_match('/^HTTP\/([12](?:\.[01])?) (\d+) (.+)/', $header, $matches);
 
                     $response = $response
-                        ->setStatusCode((int) $matches[2], $matches[3] ?? null)
-                        ->setProtocolVersion($matches[1]);
+                        ->withStatus((int) $matches[2], $matches[3] ?? null)
+                        ->withProtocolVersion($matches[1]);
                 } else {
                     [$name, $value] = explode(':', $header, 2);
+                    $value = trim($value);
 
-                    $response = $response->setHeader($name, $value);
+                    $response = $response->withHeader($name, $value);
                 }
             }
 
             $content = substr($content, $break + 4);
         }
 
-        $response = $response->setBody($content);
+        $stream = Stream::createFromString($content);
+
+        $response = $response->withBody($stream);
 
         return $response;
     }
@@ -286,9 +290,9 @@ class CurlRequest extends Request
         }
 
         if (strtolower($options['method']) === 'get') {
-            $query = $uri->getQuery();
+            $query = $uri->getQueryParams();
             $data = array_replace_recursive($query, $options['data']);
-            $uri = $uri->setQuery($data);
+            $uri = $uri->withQueryParams($data);
 
             return [$uri, $options];
         }
@@ -333,7 +337,6 @@ class CurlRequest extends Request
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER => true,
             CURLOPT_FRESH_CONNECT => true,
-            CURLOPT_SAFE_UPLOAD => true,
             CURLOPT_TIMEOUT_MS => $options['timeout'] * 1000,
             CURLOPT_CONNECTTIMEOUT_MS => $options['connectTimeout'] * 1000,
             CURLOPT_FAILONERROR => $options['httpErrors'] ?? true,

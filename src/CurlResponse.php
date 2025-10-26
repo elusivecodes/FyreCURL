@@ -22,6 +22,6 @@ class CurlResponse extends Response
      */
     public function getJson(bool $associative = true, int $depth = 512, int $flags = 0): mixed
     {
-        return json_decode($this->body, $associative, $depth, $flags);
+        return json_decode($this->body->getContents(), $associative, $depth, $flags);
     }
 }

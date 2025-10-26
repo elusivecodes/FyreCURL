@@ -26,7 +26,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -52,7 +52,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'DELETE',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -78,7 +78,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'GET',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -92,7 +92,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'text/html',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -102,7 +102,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             '',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -120,7 +120,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'OPTIONS',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -144,7 +144,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'PATCH',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -168,7 +168,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'POST',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -202,7 +202,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'HTTP/1.0',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -226,7 +226,7 @@ final class CurlTest extends TestCase
 
         $this->assertSame(
             'PUT',
-            $response->getBody()
+            $response->getBody()->getContents()
         );
     }
 
@@ -238,6 +238,6 @@ final class CurlTest extends TestCase
 
     public static function tearDownAfterClass(): void
     {
-        exec('kill '.self::$pid);
+        exec('kill '.self::$pid.' 2>&1');
     }
 }
